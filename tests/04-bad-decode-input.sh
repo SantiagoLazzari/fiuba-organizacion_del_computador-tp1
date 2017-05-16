@@ -33,7 +33,7 @@ fi
 OUTPUT=`echo -n abc\# | ./$TP_NAME -a decode 2>&1 > /dev/null`;
 TEST_DESCRIPTION='Cannot decode non-table symbols';
 
-if [ "$OUTPUT" == "Decoding error: Cannot decode symbol #" ]
+if [ "$OUTPUT" == "Decoding Error: Cannot decode symbol" ]
 then
   echo "$TEST_DESCRIPTION: OK";
 else
