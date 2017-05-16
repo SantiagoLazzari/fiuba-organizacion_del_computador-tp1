@@ -24,12 +24,21 @@ char PADDING_SYMBOL = '=';
 int main(int argc, char** argv) {
 
     parse_options(argc, argv, &options);
+	
+    if (options.should_decode) {
+        base64_decode(
+            options.input_file_descriptor,
+            options.output_file_descriptor
+        );
+    } else {
+        base64_encode(
+            options.input_file_descriptor,
+            options.output_file_descriptor
+        );
+    }   
 
-    base64_encode(
-        options.input_file_descriptor,
-        options.output_file_descriptor
-    );
-
+    // TODO: Catch error code and output this for stderr.
+    
     close_files(&options);
     return 0;
 }
