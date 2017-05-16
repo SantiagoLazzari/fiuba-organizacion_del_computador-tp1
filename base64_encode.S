@@ -27,19 +27,45 @@ base64_encode:
 	sw	a1,  (STACK_FRAME_SIZE +  4)(sp)
 
 read_input:
-        # Reduje a un solo pedido con 3 chars 
-        # Ahora se pede branchear dependiendo de v0
-        # y ahi podemos decidir de poner los '='
-        
+    
+    la    t0, input_buffer
+    sb    zero, 0(t0)
+    sb    zero, 1(t0)
+    sb    zero, 2(t0)
+    
+    li    s3, 0  
+    
+   ## Read 1 char at time avoid endianess problems
+   
 	lw	a0, (STACK_FRAME_SIZE)(sp)
 	la	a1, input_buffer
-	li	a2, 3
+	li	a2, 1
 	li	v0, SYS_read
 	syscall
-        
-        beq     v0, 0, exit_base64_encode
+    
+    beqz    v0, exit_base64_encode
+    addiu   s3, s3, 1
+    
+ 	lw	a0, (STACK_FRAME_SIZE)(sp)   
+ 	la	a1, input_buffer + 1
+ 	li	a2, 1
+ 	li	v0, SYS_read
+ 	syscall          
 
-        addu    s0, v0, 0
+    beqz    v0, encode
+    addiu   s3, s3, 1
+                                      
+    lw	a0, (STACK_FRAME_SIZE)(sp)   
+    la	a1, input_buffer + 2             
+    li	a2, 1
+    li	v0, SYS_read
+    syscall                                                            
+    
+    beqz    v0, encode
+    addiu   s3, s3, 1
+    
+    beq     v0, 0, exit_base64_encode
+    addu    s0, v0, 0
         
 	## TODO: Handle read error ##
 
@@ -102,6 +128,22 @@ translate_to_symbols:
 	lb	t0, 0(t0)		# t0 = encode_table[t2]
 	sb	t0, 3(t1)		# output[3] = t0
 
+add_padding:
+    li      t0, 0
+    beq     s3, t0, write_output
+    li      t0, 3
+    beq     s3, t0, write_output
+
+    li      t0, '='
+    la      t1, output_buffer
+    sb      t0, 3(t1)
+
+    li      t2, 2
+    beq     s3, t2, write_output
+
+    sb      t0, 2(t1)      
+
+
 write_output:
 
 	lw	a0, (STACK_FRAME_SIZE + 4)(sp)
@@ -128,7 +170,8 @@ write_output:
 	li	v0, SYS_write
 	syscall
 
-        bgtz    s0, read_input
+    li     t0, 3
+    bge    t0, s3, read_input
 
 verify_write:
 	## TODO: Handle write errors ##
