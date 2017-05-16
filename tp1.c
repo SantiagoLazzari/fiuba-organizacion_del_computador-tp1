@@ -39,10 +39,10 @@ int main(int argc, char** argv) {
         );
     }
 
-    if (!base64_output) {
+    if (base64_output) {
         fprintf(stderr, "%s", ERROR_MSG[base64_output]);
     }
-    
+
     close_files(&options);
     return 0;
 }
