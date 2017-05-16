@@ -14,7 +14,7 @@
 .cpload		t9
 .set		reorder
 
-base64_encode:	
+base64_encode:
 	subu	sp,  sp, STACK_FRAME_SIZE
 
 	sw	gp,  (STACK_FRAME_SIZE - 16)(sp)
@@ -27,47 +27,48 @@ base64_encode:
 	sw	a1,  (STACK_FRAME_SIZE +  4)(sp)
 
 read_input:
-    
+
     la    t0, input_buffer
     sb    zero, 0(t0)
     sb    zero, 1(t0)
     sb    zero, 2(t0)
-    
-    li    s3, 0  
-    
+
+    li    s3, 0
+
    ## Read 1 char at time avoid endianess problems
-   
+
 	lw	a0, (STACK_FRAME_SIZE)(sp)
 	la	a1, input_buffer
 	li	a2, 1
 	li	v0, SYS_read
 	syscall
-    
+
     beqz    v0, exit_base64_encode
     addiu   s3, s3, 1
-    
- 	lw	a0, (STACK_FRAME_SIZE)(sp)   
+
+ 	lw	a0, (STACK_FRAME_SIZE)(sp)
  	la	a1, input_buffer + 1
  	li	a2, 1
  	li	v0, SYS_read
- 	syscall          
+ 	syscall
 
     beqz    v0, encode
     addiu   s3, s3, 1
-                                      
-    lw	a0, (STACK_FRAME_SIZE)(sp)   
-    la	a1, input_buffer + 2             
+
+    lw	a0, (STACK_FRAME_SIZE)(sp)
+    la	a1, input_buffer + 2
     li	a2, 1
     li	v0, SYS_read
-    syscall                                                            
-    
+    syscall
+
     beqz    v0, encode
     addiu   s3, s3, 1
-    
+
     beq     v0, 0, exit_base64_encode
     addu    s0, v0, 0
-        
-	## TODO: Handle read error ##
+
+		bne			v0, -1, encode
+		li			v0, 1
 
 encode:
 
@@ -103,7 +104,7 @@ translate_to_symbols:
 	la	t0, encode_table	# t0 = encode_table
 	la	t1, output_buffer	# t1 = output
 	lbu	t2, 0(t1)		# t2 = output[0]
-	addu	t0, t0, t2		# 
+	addu	t0, t0, t2		#
 	lb	t0, 0(t0)		# t0 = encode_table[t2]
 	sb	t0, 0(t1)		# output[0] = t0
 
@@ -141,7 +142,7 @@ add_padding:
     li      t2, 2
     beq     s3, t2, write_output
 
-    sb      t0, 2(t1)      
+    sb      t0, 2(t1)
 
 
 write_output:
@@ -202,4 +203,3 @@ input_buffer:
 output_buffer:
 	.space	4
 	.byte	0, 0, 0, 0
-
