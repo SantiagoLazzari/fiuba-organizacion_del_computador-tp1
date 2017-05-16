@@ -27,25 +27,20 @@ base64_encode:
 	sw	a1,  (STACK_FRAME_SIZE +  4)(sp)
 
 read_input:
-
+        # Reduje a un solo pedido con 3 chars 
+        # Ahora se pede branchear dependiendo de v0
+        # y ahi podemos decidir de poner los '='
+        
 	lw	a0, (STACK_FRAME_SIZE)(sp)
 	la	a1, input_buffer
-	li	a2, 1
+	li	a2, 3
 	li	v0, SYS_read
 	syscall
+        
+        beq     v0, 0, exit_base64_encode
 
-	lw	a0, (STACK_FRAME_SIZE)(sp)
-	la	a1, input_buffer + 1
-	li	a2, 1
-	li	v0, SYS_read
-	syscall
-
-	lw	a0, (STACK_FRAME_SIZE)(sp)
-	la	a1, input_buffer + 2
-	li	a2, 1
-	li	v0, SYS_read
-	syscall
-
+        addu    s0, v0, 0
+        
 	## TODO: Handle read error ##
 
 encode:
@@ -132,6 +127,8 @@ write_output:
 	li	a2, 1
 	li	v0, SYS_write
 	syscall
+
+        bgtz    s0, read_input
 
 verify_write:
 	## TODO: Handle write errors ##
