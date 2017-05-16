@@ -68,7 +68,7 @@ read_input:
     addu    s0, v0, 0
 
 		bne			v0, -1, encode
-		li			v0, 1, exit_base64_encode
+		li			v0, 1
 
 encode:
 
