@@ -71,7 +71,7 @@ continue_read:
     li      t1, 4                   
     beq     s2, t1, assert_buffer   # Read_byte_count == 4 ?
         
-    li      v0, 1                   # ERR: Wrong encoded msg length
+    li      v0, 2                   # ERR: Wrong encoded msg length
     j       exit_base64_decode
 	
 assert_buffer:
@@ -94,7 +94,7 @@ assert_buffer:
 
 assert_err:
     
-    li      v0, 1                   # ERR: Wrong encoded msg length
+    li      v0, 2                   # ERR: Wrong encoded msg length
     j       exit_base64_decode
 
 count_pad:
@@ -151,7 +151,7 @@ assert_symbol:
         li      t4, '='                 # && a1 != '='
         beq     a1, t4, end_assert
 
-        li      v0, 2                   # ERR: Cannot decode symbol
+        li      v0, 3                   # ERR: Cannot decode symbol
         j       exit_base64_decode
 
 end_assert:
