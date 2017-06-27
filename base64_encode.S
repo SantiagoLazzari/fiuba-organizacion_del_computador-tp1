@@ -20,7 +20,8 @@ base64_encode:
 	sw	gp,  (STACK_FRAME_SIZE - 16)(sp)
 	sw	$fp, (STACK_FRAME_SIZE - 12)(sp)
 	sw	ra,  (STACK_FRAME_SIZE -  8)(sp)
-
+    sw  s3,  (STACK_FRAME_SIZE -  4)(sp)
+    
 	move	$fp, sp
 
 	sw	a0,  (STACK_FRAME_SIZE     )(sp)
@@ -35,7 +36,7 @@ read_input:
 
     li    s3, 0
 
-   ## Read 1 char at time avoid endianess problems
+    ## Read 1 char at time avoid endianess problems
 
 	lw	a0, (STACK_FRAME_SIZE)(sp)
 	la	a1, input_buffer
@@ -179,14 +180,13 @@ verify_write:
 
 exit_base64_encode:
 
-	# restore callee-saved registers
-
 	lw	a1,  (STACK_FRAME_SIZE +  4)(sp)
 	lw	a0,  (STACK_FRAME_SIZE     )(sp)
 
 	lw	gp,  (STACK_FRAME_SIZE - 16)(sp)
 	lw	$fp, (STACK_FRAME_SIZE - 12)(sp)
 	lw	ra,  (STACK_FRAME_SIZE -  8)(sp)
+    lw  s3,  (STACK_FRAME_SIZE -  4)(sp)
 
 	addu	sp,  sp, STACK_FRAME_SIZE
 
