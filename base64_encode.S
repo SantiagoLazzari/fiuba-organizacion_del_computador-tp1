@@ -44,6 +44,12 @@ read_input:
 	li	v0, SYS_read
 	syscall
 
+    beq a3, 0, continue_validation
+    li  v0, 1
+    j   exit_base64_encode
+
+continue_validation:    
+
     beqz    v0, exit_base64_encode
     addiu   s3, s3, 1
 
@@ -53,6 +59,11 @@ read_input:
  	li	v0, SYS_read
  	syscall
 
+    beq a3, 0, continue_second_validation
+    li v0, 1
+    j   exit_base64_encode
+    
+continue_second_validation:
     beqz    v0, encode
     addiu   s3, s3, 1
 
@@ -62,14 +73,19 @@ read_input:
     li	v0, SYS_read
     syscall
 
+    beq a3, 0, continue_third_validation
+    li  v0, 1
+    j   exit_base64_encode
+
+continue_third_validation:
     beqz    v0, encode
     addiu   s3, s3, 1
 
     beq     v0, 0, exit_base64_encode
     addu    s0, v0, 0
 
-		bne			v0, -1, encode
-		li			v0, 1
+	bne			v0, -1, encode
+	li			v0, 1
 
 encode:
 
@@ -154,32 +170,49 @@ write_output:
 	li	v0, SYS_write
 	syscall
 
+    beq a3, 0, continue_write_val
+    li  v0, 1
+    j   exit_base64_encode
+
+continue_write_val:    
+
 	lw	a0, (STACK_FRAME_SIZE + 4)(sp)
 	la	a1, output_buffer + 1
 	li	a2, 1
 	li	v0, SYS_write
 	syscall
 
+    beq a3, 0, continue_write_second_val
+    li  v0, 1
+    j   exit_base64_encode
+    
+continue_write_second_val:    
 	lw	a0, (STACK_FRAME_SIZE + 4)(sp)
 	la	a1, output_buffer + 2
 	li	a2, 1
 	li	v0, SYS_write
 	syscall
 
+    beq a3, 0, continue_write_third_val
+    li  v0, 1
+    j   exit_base64_encode
+
+continue_write_third_val:
 	lw	a0, (STACK_FRAME_SIZE + 4)(sp)
 	la	a1, output_buffer + 3
 	li	a2, 1
 	li	v0, SYS_write
 	syscall
 
+    beq a3, 0, continue_write_fourth_val
+    li  v0, 1
+    j   exit_base64_encode
+    
+continue_write_fourth_val:
     li     t0, 3
     bge    t0, s3, read_input
 
-verify_write:
-	## TODO: Handle write errors ##
-
 exit_base64_encode:
-
 	lw	a1,  (STACK_FRAME_SIZE +  4)(sp)
 	lw	a0,  (STACK_FRAME_SIZE     )(sp)
 
