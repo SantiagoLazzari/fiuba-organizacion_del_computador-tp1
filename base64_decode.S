@@ -1,7 +1,7 @@
 #include <mips/regdef.h>
 #include <sys/syscall.h>
 
-#define STACK_FRAME_SIZE 24
+#define STACK_FRAME_SIZE 32
 
 .text
 .abicalls
@@ -10,8 +10,6 @@
 .globl 		base64_decode
 .ent 		base64_decode
 
-.frame      $fp, STACK_FRAME_SIZE, ra
-
 .set 		noreorder
 .cpload 	t9
 .set 		reorder
@@ -19,9 +17,11 @@
 base64_decode:	
     subu 	sp,  sp, STACK_FRAME_SIZE
 
-    .cprestore 16
-	sw 	    $fp, (STACK_FRAME_SIZE - 12)(sp)
-	sw 	    ra,  (STACK_FRAME_SIZE -  8)(sp)
+    sw      gp,  (STACK_FRAME_SIZE - 24)(sp)
+	sw 	    $fp, (STACK_FRAME_SIZE - 20)(sp)
+	sw 	    ra,  (STACK_FRAME_SIZE - 16)(sp)
+    sw      s2,  (STACK_FRAME_SIZE - 12)(sp)
+    sw      s3,  (STACK_FRAME_SIZE - 8)(sp)
 
 	move    $fp, sp
 
@@ -36,6 +36,12 @@ read_input:
 	li	    v0, SYS_read
 	syscall
 
+    beq     a3, zero, continue_validation 
+    li      v0, 1
+    j       exit_base64_decode
+    
+
+continue_validation:
     li      s2, 0                     # Read byte count
     addu    s2, s2, v0
         
@@ -50,6 +56,11 @@ continue_read:
 	li	    v0, SYS_read
 	syscall
 
+    beq     a3, zero, continue_second_validation
+    li      v0, 1
+    j       exit_base64_decode
+    
+continue_second_validation:
     addu    s2, s2, v0
 
     lw      a0, (STACK_FRAME_SIZE)(sp)
@@ -58,6 +69,11 @@ continue_read:
 	li	    v0, SYS_read
 	syscall
 
+    beq     a3, zero, continue_third_validation
+    li      v0, 1
+    j       exit_base64_decode
+
+continue_third_validation:
     addu    s2, s2, v0
 
     lw	    a0, (STACK_FRAME_SIZE)(sp)
@@ -66,6 +82,11 @@ continue_read:
     li	    v0, SYS_read
     syscall
     
+    beq     a3, zero, continue_fourth_validation
+    li      v0, 1
+    j       exit_base64_decode
+    
+continue_fourth_validation:    
     addu    s2, s2, v0
         
     li      t1, 4                   
@@ -226,6 +247,11 @@ write_output:
 	li 	v0, SYS_write
 	syscall
 	
+    beq a3, 0, continue_write_val
+    li  v0, 1
+    j   exit_base64_decode
+    
+continue_write_val:
     li  t0, 2
     beq t0, s3, exit_base64_decode
     
@@ -235,6 +261,11 @@ write_output:
 	li 	v0, SYS_write
 	syscall
 
+    beq a3, 0, continue_second_write_val
+    li  v0, 1
+    j   exit_base64_decode
+    
+continue_second_write_val:
     li  t0, 1
     beq t0, s3, exit_base64_decode
 
@@ -244,18 +275,23 @@ write_output:
 	li 	v0, SYS_write
 	syscall
 
+    beq a3, 0, continue_loop
+    li  v0, 1
+    j   exit_base64_decode
+    
+continue_loop:
     j       read_input
 
 exit_base64_decode:
 	
-	# restore callee-saved registers
+	lw  a1,  (STACK_FRAME_SIZE +  4)(sp)
+    lw 	a0,  (STACK_FRAME_SIZE	   )(sp)
 
-	lw 	a1,  (STACK_FRAME_SIZE +  4)(sp)
-	lw 	a0,  (STACK_FRAME_SIZE	   )(sp)
-
-	lw 	gp,  (STACK_FRAME_SIZE - 16)(sp)
-	lw 	$fp, (STACK_FRAME_SIZE - 12)(sp)
-	lw 	ra,  (STACK_FRAME_SIZE -  8)(sp)
+	lw 	gp,  (STACK_FRAME_SIZE - 24)(sp)
+	lw 	$fp, (STACK_FRAME_SIZE - 20)(sp)
+	lw 	ra,  (STACK_FRAME_SIZE - 16)(sp)
+    lw  s3,  (STACK_FRAME_SIZE - 12)(sp)
+    lw  s2,  (STACK_FRAME_SIZE -  8)(sp)
 
 	addu 	sp,  sp, STACK_FRAME_SIZE
 

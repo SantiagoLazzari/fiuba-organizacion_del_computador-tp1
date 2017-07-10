@@ -1,1 +1,2 @@
-gcc tp1.c argv_parser.c base64_encode.S -g -o tp1
+TP_NAME='tp1';
+gcc -pedantic -Wall -Werror -std=c99 $TP_NAME.c argv_parser.c base64_encode.S base64_decode.S -o $TP_NAME
